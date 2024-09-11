@@ -36,6 +36,7 @@ public class KeyboardView {
                     if (keyPressed.equals("KEYCODE_ENTER")) {
                         NativeUtils.UpdateInputText("\n");
                     }
+
                 }
                 return super.dispatchKeyEvent(event);
             }

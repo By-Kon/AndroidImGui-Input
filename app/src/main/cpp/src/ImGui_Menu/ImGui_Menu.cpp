@@ -7,18 +7,20 @@
 
 JniTool* jnitool = new JniTool();
 void ImGui_Menu::MainMenu() {
+    float framerate = ImGui::GetIO().Framerate;
     //ImGui::SetNextWindowSize(ImVec2(500.0f,500.0f));
     static float Login_h  = 0.0f;
     if(Login_h < 500.0f){
-        Login_h += 1.0f;
+        Login_h += 8.0f;
     }
     ImGui::SetNextWindowSize(ImVec2(900.0f,Login_h));
     ImVec2 beginSize = {900,Login_h};
-    ImGui::SetNextWindowPos(ImVec2((screenSize->x - beginSize.x) / 2, (screenSize->y - beginSize.y) / 2));
+    //ImGui::SetNextWindowPos(ImVec2((screenSize->x - beginSize.x) / 2, (screenSize->y - beginSize.y) / 2));
     ImGui::Begin("Sak_Text_Input", nullptr,3);
-
+    ImGui::Text("FPS: %.1f", framerate);
     ImGui::InputText("Text Input", this->inputText, IM_ARRAYSIZE(this->inputText));
     ImGui::InputText("Text Input2", this->inputText2, IM_ARRAYSIZE(this->inputText2));
+    ImGui::Button("test");
     ImGui::End();
 
 }

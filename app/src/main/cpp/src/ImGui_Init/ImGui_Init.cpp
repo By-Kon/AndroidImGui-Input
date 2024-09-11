@@ -193,29 +193,37 @@ void ImGui_Init::SetAAssetManager(AAssetManager* assetManager2) {
    this->assetManager = assetManager2;
 }
 
-
 void ImGui_Init::InputTouchEvent(int event_get_action, float x, float y) {
-    switch (event_get_action){
+    bool updatePos = false;
 
+    switch (event_get_action) {
         case eTouchEvent::TOUCH_OUTSIDE:
             imGuiIo->MouseDown[0] = false;
             break;
+
         case eTouchEvent::TOUCH_DOWN:
-            imGuiIo->MousePos.x = x;
-            imGuiIo->MousePos.y = y;
             imGuiIo->MouseDown[0] = true;
+            updatePos = true;
             break;
+
         case eTouchEvent::TOUCH_UP:
             imGuiIo->MouseDown[0] = false;
             break;
+
         case eTouchEvent::TOUCH_MOVE:
-            imGuiIo->MousePos.x = x;
-            imGuiIo->MousePos.y = y;
+            updatePos = true;
             break;
+
         default:
-            break;
+            return; // Early return for unknown actions
+    }
+
+    if (updatePos) {
+        imGuiIo->MousePos.x = x;
+        imGuiIo->MousePos.y = y;
     }
 }
+
 
 void ImGui_Init::MyWindowFunction() {
     // 获取当前 ImGui 上下文
@@ -224,24 +232,6 @@ void ImGui_Init::MyWindowFunction() {
     }
     // 获取窗口列表
     WinList = g_Context->Windows;
-
-    // 使用迭代器遍历窗口列表
-   /* for (auto it = WinList.begin(); it != WinList.end(); ++it) {
-        g_Window = *it;
-
-        // 检查窗口是否有效
-        if (g_Window != nullptr && g_Window->Active && !g_Window->Collapsed) {
-            // 在此处理有效窗口的逻辑
-            // 例如，渲染或更新窗口内容
-            LOGD("无效窗口：%s",g_Window->Name);
-            //WinList.erase(WinList.begin());
-        } else {
-            // 窗口无效，进行清理或其他操作
-            // 可以选择从列表中移除窗口（如果需要）
-            LOGD("无效窗口：%s",g_Window->Name);
-        }
-    }
-    */
 }
 
 void KeyboardView(){
@@ -275,12 +265,14 @@ void KeyboardView(){
 }
 
 
-
+timer renderTimer;
 void ImGui_Init::EglThread() {
     this->InitEGL();
     ImGui_Menu* menu = new ImGui_Menu(&DisplaySize);
+    renderTimer.SetFps(60);
+    renderTimer.setAffinity();
+    renderTimer.AotuFPS_init(true);
     while (true) {
-
         static bool WantTextInputLast = false;
         if (imGuiIo->WantTextInput && !WantTextInputLast) {
             LOGD("获取焦点");
@@ -294,6 +286,8 @@ void ImGui_Init::EglThread() {
         ImGuiNewFrame();
         menu->MainMenu();
         ImGuiRender();
+        renderTimer.AotuFPS();
+
     }
 }
 
@@ -323,7 +317,6 @@ void ImGui_Init::Start() {
 }
 
 void ImGui_Init::UpDisplaySize(int width,int height){
-    LOGD("分辨率：%d\n%d",width,height);
     DisplaySize = ImVec2(width,height);
 }
 

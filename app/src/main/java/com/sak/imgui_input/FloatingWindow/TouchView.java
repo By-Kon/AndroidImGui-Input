@@ -32,12 +32,8 @@ public class TouchView extends View {
     public static WindowManager.LayoutParams mtouch_Params;
     private final Handler handler;
     private static Context con;
+    private ImGuiWindowData[] lastWindowData; // 用于缓存上一次的窗口数据
 
-    /**
-     * 构造方法，初始化 TouchView 并设置必要的参数。
-     *
-     * @param context 上下文对象
-     */
     public TouchView(Context context) {
         super(context);
         mtouch_View = this;
@@ -46,53 +42,23 @@ public class TouchView extends View {
         handler = new Handler();
     }
 
-    /**
-     * 初始化视图，设置布局参数并将视图添加到窗口管理器。
-     */
     public void initView() {
         mtouch_Params = WindowLayoutParas.getAttributes(false);
         mtouch_Params.token = mtouch_View.getApplicationWindowToken();
         manager.addView(mtouch_View, mtouch_Params);
-
-        // 启动定期更新任务
         startPeriodicUpdates();
     }
 
-    /**
-     * 处理触摸事件并将触摸信息发送到 IPC 服务。
-     *
-     * @param event 触摸事件对象
-     * @return 如果事件被处理返回 true，否则返回 false
-     */
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // 如果事件没有被处理，直接返回 false
+        if (event == null) return false;
+        Log.d("触摸事件：", "" + event.getAction());
         NativeUtils.MotionEventClick(event.getAction(), event.getRawX(), event.getRawY());
         return false;
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // 打印键盘事件的 Unicode 字符
-        Log.d("J触摸：", String.valueOf(event.getAction()) + "-" + event.getUnicodeChar());
-        Log.d("字符：", String.valueOf(event.getUnicodeChar(event.getMetaState())));
-        // 返回 true 表示事件已处理
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        // 打印键盘事件的 Unicode 字符
-        Log.d("J触摸：", String.valueOf(event.getAction()) + "-" + event.getUnicodeChar());
-        Log.d("字符：", String.valueOf(event.getUnicodeChar(event.getMetaState())));
-        // 返回 true 表示事件已处理
-        return super.onKeyUp(keyCode, event);
-    }
-
-
-    /**
-     * 启动定期更新任务，用于获取和更新窗口数据。
-     */
     private void startPeriodicUpdates() {
         handler.postDelayed(new Runnable() {
             @Override
@@ -103,28 +69,40 @@ public class TouchView extends View {
         }, UPDATE_INTERVAL_MS);
     }
 
-    /**
-     * 从 IPC 服务获取窗口数据并更新视图。
-     */
     private void updateWindowData() {
-        ImGuiWindowData[] windowData;
-        windowData = NativeUtils.GetImGuiWinSize();
-        if (windowData != null) {
+        ImGuiWindowData[] windowData = NativeUtils.GetImGuiWinSize();
+        if (windowData != null && !isSameWindowData(windowData)) { // 只有数据不同时才更新
             updateViews(windowData);
             cleanUpViews(windowData);
+            lastWindowData = windowData; // 保存当前数据以备下次比较
         }
     }
 
-    /**
-     * 根据窗口数据更新视图。
-     *
-     * @param windowData 窗口数据数组
-     */
+    private boolean isSameWindowData(ImGuiWindowData[] windowData) {
+        if (lastWindowData == null || lastWindowData.length != windowData.length) {
+            return false;
+        }
+        for (int i = 0; i < windowData.length; i++) {
+            // 先检查是否为空
+            if (windowData[i] == null || lastWindowData[i] == null) {
+                return false;
+            }
+            // 比较具体字段
+            if (windowData[i].WinID != lastWindowData[i].WinID ||
+                    windowData[i].Pos_X != lastWindowData[i].Pos_X ||
+                    windowData[i].Pos_Y != lastWindowData[i].Pos_Y ||
+                    windowData[i].Size_X != lastWindowData[i].Size_X ||
+                    windowData[i].Size_Y != lastWindowData[i].Size_Y) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     private void updateViews(ImGuiWindowData[] windowData) {
-        Set<Integer> activeKeys = new HashSet<>();
         for (ImGuiWindowData data : windowData) {
             if (data != null) {
-                activeKeys.add(data.WinID);
                 mtouch_Params.x = (int) data.Pos_X;
                 mtouch_Params.y = (int) data.Pos_Y;
                 mtouch_Params.width = (int) data.Size_X;
@@ -143,11 +121,6 @@ public class TouchView extends View {
         }
     }
 
-    /**
-     * 根据窗口数据添加新的视图。
-     *
-     * @param data 窗口数据对象
-     */
     private void addNewView(ImGuiWindowData data) {
         TouchView newTouchView = new TouchView(con);
         EventClass.ViewList.put(data.WinID, newTouchView);
@@ -156,11 +129,6 @@ public class TouchView extends View {
         }
     }
 
-    /**
-     * 更新或移除已有的视图。
-     *
-     * @param winID 窗口 ID
-     */
     private void updateOrRemoveView(int winID) {
         View view = EventClass.ViewList.get(winID);
         if (view != null && FloatWinService.manager != null) {
@@ -168,11 +136,6 @@ public class TouchView extends View {
         }
     }
 
-    /**
-     * 清理不再使用的视图。
-     *
-     * @param windowData 窗口数据数组
-     */
     private void cleanUpViews(ImGuiWindowData[] windowData) {
         Set<Integer> activeKeys = new HashSet<>();
         for (ImGuiWindowData data : windowData) {
@@ -191,11 +154,6 @@ public class TouchView extends View {
         }
     }
 
-    /**
-     * 移除视图并从窗口管理器中删除。
-     *
-     * @param view 要移除的视图
-     */
     private void removeView(View view) {
         if (FloatWinService.manager != null) {
             FloatWinService.manager.removeView(view);
@@ -203,9 +161,6 @@ public class TouchView extends View {
         Log.e("TouchView", "Removed view");
     }
 
-    /**
-     * 销毁当前视图，并清理相关资源。
-     */
     public void destroy() {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
@@ -220,5 +175,5 @@ public class TouchView extends View {
         mtouch_View = null;
         manager = null;
     }
-
 }
+

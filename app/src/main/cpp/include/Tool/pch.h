@@ -19,5 +19,5 @@
 #include <thread>
 #include "android/asset_manager.h"
 #include "android/asset_manager_jni.h"
-
+#include "timer.h"
 #endif //IMGUITESTMENU_PCH_H
