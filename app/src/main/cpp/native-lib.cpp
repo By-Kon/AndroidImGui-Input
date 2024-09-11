@@ -116,9 +116,10 @@ JNIEXPORT void JNICALL
 Java_com_sak_imgui_1input_NativeUtils_DeleteInputText(JNIEnv *env, jclass clazz) {
     // TODO: implement DeleteInputText()
     if (gEGLInstance) {
-        LOGD("不知道");
-        gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace,true);
+        gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace, true);
+        usleep(10000);
         gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace, false);
+
     }
 }
 
