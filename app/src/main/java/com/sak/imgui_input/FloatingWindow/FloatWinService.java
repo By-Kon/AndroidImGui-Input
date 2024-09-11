@@ -142,7 +142,6 @@ public class FloatWinService extends Service {
     }
 
     public static void addKeyboardView() {
-        Log.d(TAG, "addKeyboardView");
         if (keyboardView == null){
             new Handler(Looper.getMainLooper()).post(() -> keyboardView = new KeyboardView(instance));
         }else {

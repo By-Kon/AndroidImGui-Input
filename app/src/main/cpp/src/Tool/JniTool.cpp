@@ -31,7 +31,7 @@ void JniTool::DetachThread() {
     g_VM->DetachCurrentThread();
 }
 
-void JniTool::NativeMethod() {
+void JniTool::SetFloatWinServiceClass() {
     JNIEnv *env = nullptr;
     JniTool::g_VM->AttachCurrentThread(&env, nullptr);
     jclass clazz = env->FindClass("com/sak/imgui_input/FloatingWindow/FloatWinService");

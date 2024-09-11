@@ -17,6 +17,7 @@
 #include "android/native_window_jni.h"
 #include "log.h"
 #include <thread>
-#include "font.h"
+#include "android/asset_manager.h"
+#include "android/asset_manager_jni.h"
 
 #endif //IMGUITESTMENU_PCH_H

@@ -52,7 +52,7 @@ Java_com_sak_imgui_1input_NativeUtils_SurfaceCreate(JNIEnv* env, jobject /*thiz*
     if (gEGLInstance) {
         gEGLInstance->init(env, surface);
         gEGLInstance->UpDisplaySize(width, height);
-        jniTool.NativeMethod();
+        jniTool.SetFloatWinServiceClass();
     }
 }
 
@@ -119,5 +119,18 @@ Java_com_sak_imgui_1input_NativeUtils_DeleteInputText(JNIEnv *env, jclass clazz)
         LOGD("不知道");
         gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace,true);
         gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace, false);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_sak_imgui_1input_NativeUtils_LoadFontFrom(JNIEnv *env, jclass clazz,
+                                                   jobject asset_manager) {
+    // TODO: implement LoadFontFrom()
+    if (gEGLInstance) {
+        AAssetManager* mgr = AAssetManager_fromJava(env, asset_manager);
+        if (mgr != nullptr) {
+            gEGLInstance->SetAAssetManager(mgr);
+        }
     }
 }

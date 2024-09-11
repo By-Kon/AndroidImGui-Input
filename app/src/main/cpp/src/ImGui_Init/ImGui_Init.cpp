@@ -11,11 +11,89 @@ ImGui_Init::ImGui_Init() {
     g_EglContext = EGL_NO_CONTEXT;
 }
 
+// 计算新的字体大小
+float CalculateScaledFontSize(float baseFontSize, int baseWidth, int baseHeight, int newWidth, int newHeight)
+{
+    // 计算水平和垂直缩放因子
+    float horizontalScale = static_cast<float>(newWidth) / baseWidth;
+    float verticalScale = static_cast<float>(newHeight) / baseHeight;
+
+    // 使用水平和垂直缩放因子的平均值
+    float scaleFactor = (horizontalScale + verticalScale) / 2.0f;
+
+    // 返回新的字体大小
+    return baseFontSize * scaleFactor;
+}
+
+// Helper to retrieve data placed into the assets/ directory (android/app/src/main/assets)
+int ImGui_Init::GetAssetData(const char* filename, void** outData)
+{
+    int num_bytes = 0;
+    AAsset* asset_descriptor = AAssetManager_open(assetManager, filename, AASSET_MODE_BUFFER);
+    if (asset_descriptor)
+    {
+        num_bytes = AAsset_getLength(asset_descriptor);
+        *outData = IM_ALLOC(num_bytes);
+        int64_t num_bytes_read = AAsset_read(asset_descriptor, *outData, num_bytes);
+        AAsset_close(asset_descriptor);
+        IM_ASSERT(num_bytes_read == num_bytes);
+    }
+    return num_bytes;
+}
 
 void ImGui_Init::init(JNIEnv* env, jobject surface) {
     // 获取ANativeWindow并保存相关信息
     this->SurfaceWin = ANativeWindow_fromSurface(env, surface);
 }
+
+void ImGui_Init::LoadFont() {
+
+
+    // 设置字体配置
+    ImFontConfig fontConfig;
+    fontConfig.OversampleH = 2;  // 提高水平采样质量
+    fontConfig.OversampleV = 2;  // 提高垂直采样质量
+    fontConfig.PixelSnapH = true;  // 启用像素对齐
+
+    // 读取字体数据
+    void* font_data = nullptr;
+    int font_data_size = GetAssetData("test.ttf", &font_data);
+
+    if (font_data_size > 0)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        ImFontAtlas* atlas = io.Fonts;
+
+        // 清除现有的字体
+        atlas->Clear();
+
+        // 加载字体，指定字符范围，包括中文字符范围
+        static const ImWchar ranges[] = {
+                0x0020, 0x00FF,  // 基本拉丁字符
+                0x4E00, 0x9FAF,  // CJK（中文）字符
+                0
+        };
+        // 基准分辨率和字体大小 (1080x2400, 字体大小 60.0f)
+        float baseFontSize = 50.0f; // 基准字体大小
+        int baseWidth = 1080;       // 基准宽度
+        int baseHeight = 2400;      // 基准高度
+        float newFontSize = CalculateScaledFontSize(baseFontSize, baseWidth, baseHeight, DisplaySize.x, DisplaySize.y);
+
+        LOGD("字体大小：%.2f",newFontSize);
+        // 从文件数据加载字体并指定字符范围
+        imFont = io.Fonts->AddFontFromMemoryTTF((void*)font_data, font_data_size, newFontSize, &fontConfig, ranges);
+        // 构建字体图集
+        atlas->Build();
+        // 释放字体数据
+        IM_FREE(font_data);
+    }
+    else
+    {
+
+        fprintf(stderr, "Failed to load font data from assets.\n");
+    }
+}
+
 
 int ImGui_Init::InitEGL() {
     if (g_Initialized)
@@ -71,13 +149,7 @@ int ImGui_Init::InitEGL() {
     ImGui_ImplAndroid_Init(SurfaceWin);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    ImFontConfig font_cfg;
-    font_cfg.SizePixels = 22.0f;
-    font_cfg.FontDataOwnedByAtlas = false;
-    imGuiIo->Fonts->AddFontFromMemoryTTF((void*)OPPOSans_H, OPPOSans_H_size, 30.0f, NULL, imGuiIo->Fonts->GetGlyphRangesChineseFull());//字体
-
-    imGuiIo->Fonts->AddFontDefault();
-
+    LoadFont();
     imGuiStyle->ScaleAllSizes(3.0f);
     ImGui::StyleColorsLight();
 
@@ -115,6 +187,10 @@ int ImGui_Init::InitEGL() {
     g_Initialized = true;
 
     return 1;
+}
+
+void ImGui_Init::SetAAssetManager(AAssetManager* assetManager2) {
+   this->assetManager = assetManager2;
 }
 
 
@@ -247,6 +323,7 @@ void ImGui_Init::Start() {
 }
 
 void ImGui_Init::UpDisplaySize(int width,int height){
+    LOGD("分辨率：%d\n%d",width,height);
     DisplaySize = ImVec2(width,height);
 }
 

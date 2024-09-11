@@ -6,6 +6,7 @@
 #define KIG_IMGUIEGL_H
 
 #include "pch.h"
+
 #include "ImGui_Menu.h"
 #include "JniTool.h"
 class ImGui_Init {
@@ -41,7 +42,7 @@ public:
     ImVector<ImGuiWindow*>  WinList;
 
     ImVec2 DisplaySize;
-
+    AAssetManager* assetManager;
     ImGui_Init();
 
     // EGL初始化函数
@@ -59,20 +60,17 @@ public:
 
     // 示例窗口函数
     void MyWindowFunction();
-
+    void SetAAssetManager(AAssetManager* assetManager);
     // 输入事件处理
     void InputTouchEvent(int event_get_action, float x, float y);
 
     void Start();
-
-    void SetUUID(char* UUID);
-
-    void SetPassword(char* Password);
-
-    void GameInit();
+    int GetAssetData(const char* filename, void** outData);
     void UpDisplaySize(int width,int height);
 
     ~ImGui_Init();
+private:
+    void LoadFont();
 };
 
 #endif // KIG_IMGUIEGL_H

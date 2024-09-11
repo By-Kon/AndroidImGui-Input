@@ -14,7 +14,7 @@ public:
     JniTool();
     JNIEnv* AttachThread();
     void DetachThread();
-    void NativeMethod();
+    void SetFloatWinServiceClass();
 
 private:
 

@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
             }
         }).start();
 
+        NativeUtils.LoadFontFrom(getAssets());
     }
 
     public static MainActivity getInstance() {

@@ -25,7 +25,6 @@ public class KeyboardView {
 
     public KeyboardView(Context context) {
         editText = new EditText(context) {
-            // 监听物理键盘按键事件
             @Override
             public boolean dispatchKeyEvent(KeyEvent event) {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -47,11 +46,9 @@ public class KeyboardView {
         windowManager.addView(editText, keyboardViewParams);
         toggleKeyboard(true);
 
-        // 监听文本变化（包括中文输入）
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // 无需操作
             }
 
             @Override
@@ -61,7 +58,6 @@ public class KeyboardView {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                // 无需操作
             }
         });
     }
@@ -83,10 +79,8 @@ public class KeyboardView {
     }
 
     private void handleTextChanged(String currentText) {
-        // 处理中文输入
         String addedCharacters = findAddedCharacters(currentText);
         if (!addedCharacters.isEmpty()) {
-            log("Added Text: " + addedCharacters);
             NativeUtils.UpdateInputText(addedCharacters);
         }
         previousText = currentText;
@@ -96,14 +90,12 @@ public class KeyboardView {
         StringBuilder addedCharacters = new StringBuilder();
         int length = Math.min(currentText.length(), previousText.length());
 
-        // 找到变化的字符
         for (int i = 0; i < length; i++) {
             if (currentText.charAt(i) != previousText.charAt(i)) {
                 addedCharacters.append(currentText.charAt(i));
             }
         }
 
-        // 如果文本变长，添加新字符
         if (currentText.length() > previousText.length()) {
             addedCharacters.append(currentText.substring(previousText.length()));
         }
@@ -111,9 +103,7 @@ public class KeyboardView {
         return addedCharacters.toString();
     }
 
-    private void log(String message) {
-        Log.d(TAG, message);
-    }
+
 
     public void toggleKeyboard(final boolean open) {
         new Handler().postDelayed(() -> {
