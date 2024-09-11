@@ -8,12 +8,12 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.sak.imgui_input.NativeUtils;
-
 public class KeyboardView {
 
     private static final String TAG = "KeyboardView";
@@ -24,16 +24,34 @@ public class KeyboardView {
     private String previousText = "";
 
     public KeyboardView(Context context) {
-        editText = new EditText(context);
+        editText = new EditText(context) {
+            // 监听物理键盘按键事件
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    int keyCode = event.getKeyCode();
+                    String keyPressed = KeyEvent.keyCodeToString(keyCode);
+                    if (keyPressed.equals("KEYCODE_DEL")) {
+                        NativeUtils.DeleteInputText();
+                    }
+                    if (keyPressed.equals("KEYCODE_ENTER")) {
+                        NativeUtils.UpdateInputText("\n");
+                    }
+                }
+                return super.dispatchKeyEvent(event);
+            }
+        };
+
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         setupWindowParams();
         windowManager.addView(editText, keyboardViewParams);
         toggleKeyboard(true);
 
+        // 监听文本变化（包括中文输入）
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // No operation needed here
+                // 无需操作
             }
 
             @Override
@@ -43,7 +61,7 @@ public class KeyboardView {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                // No operation needed here
+                // 无需操作
             }
         });
     }
@@ -65,17 +83,12 @@ public class KeyboardView {
     }
 
     private void handleTextChanged(String currentText) {
+        // 处理中文输入
         String addedCharacters = findAddedCharacters(currentText);
-        String removedCharacters = findRemovedCharacters(currentText);
-
         if (!addedCharacters.isEmpty()) {
+            log("Added Text: " + addedCharacters);
             NativeUtils.UpdateInputText(addedCharacters);
         }
-
-        if (!removedCharacters.isEmpty()) {
-            NativeUtils.DeleteInputText();
-        }
-
         previousText = currentText;
     }
 
@@ -83,32 +96,19 @@ public class KeyboardView {
         StringBuilder addedCharacters = new StringBuilder();
         int length = Math.min(currentText.length(), previousText.length());
 
+        // 找到变化的字符
         for (int i = 0; i < length; i++) {
             if (currentText.charAt(i) != previousText.charAt(i)) {
                 addedCharacters.append(currentText.charAt(i));
             }
         }
+
+        // 如果文本变长，添加新字符
         if (currentText.length() > previousText.length()) {
             addedCharacters.append(currentText.substring(previousText.length()));
         }
 
         return addedCharacters.toString();
-    }
-
-    private String findRemovedCharacters(String currentText) {
-        StringBuilder removedCharacters = new StringBuilder();
-        int length = Math.min(currentText.length(), previousText.length());
-
-        for (int i = 0; i < length; i++) {
-            if (currentText.charAt(i) != previousText.charAt(i)) {
-                removedCharacters.append(previousText.charAt(i));
-            }
-        }
-        if (previousText.length() > currentText.length()) {
-            removedCharacters.append(previousText.substring(currentText.length()));
-        }
-
-        return removedCharacters.toString();
     }
 
     private void log(String message) {

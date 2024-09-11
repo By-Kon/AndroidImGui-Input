@@ -54,6 +54,7 @@ public class SurfaceViewFloat extends SurfaceView implements SurfaceHolder.Callb
         this.getHolder().addCallback(this);
         touchView = new TouchView(context);
         touchView.initView();
+        new MyCustomView(context);
         EventClass.Init(context);
     }
 

@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -54,6 +55,7 @@ public class FloatWinService extends Service {
             instance.hide();
         }
     }
+
 
     @Override
     public void onCreate() {

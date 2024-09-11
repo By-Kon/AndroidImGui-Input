@@ -199,9 +199,10 @@ void KeyboardView(){
 }
 
 
-ImGui_Menu* menu = new ImGui_Menu;
+
 void ImGui_Init::EglThread() {
     this->InitEGL();
+    ImGui_Menu* menu = new ImGui_Menu(&DisplaySize);
     while (true) {
 
         static bool WantTextInputLast = false;

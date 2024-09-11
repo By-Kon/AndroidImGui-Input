@@ -1,7 +1,5 @@
 package com.sak.imgui_input;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +31,7 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        Log.d("J触摸：", String.valueOf(event.getAction() ) + "-" +event.getUnicodeChar());
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             // 打印键盘事件的 Unicode 字符
             Log.d("字符：", String.valueOf(event.getUnicodeChar(event.getMetaState())));

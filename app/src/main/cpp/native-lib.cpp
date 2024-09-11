@@ -1,7 +1,7 @@
 #include <jni.h>
 #include <string>
 #include "ImGui_Init.h"
-
+#include "imgui_impl_android.h"
 // 声明全局变量
 static JavaVM *javaVM = nullptr;
 static ImGui_Init* gEGLInstance = new ImGui_Init;
@@ -116,6 +116,8 @@ JNIEXPORT void JNICALL
 Java_com_sak_imgui_1input_NativeUtils_DeleteInputText(JNIEnv *env, jclass clazz) {
     // TODO: implement DeleteInputText()
     if (gEGLInstance) {
-        gEGLInstance->imGuiIo->AddInputCharacter(0x8);
+        LOGD("不知道");
+        gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace,true);
+        gEGLInstance->imGuiIo->AddKeyEvent(ImGuiKey_Backspace, false);
     }
 }

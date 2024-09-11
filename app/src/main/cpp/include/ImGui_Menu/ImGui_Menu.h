@@ -8,12 +8,12 @@
 #include "JniTool.h"
 class ImGui_Menu {
 public:
-    ImGui_Menu();
+    ImGui_Menu(ImVec2* screenSize);
 
     void MainMenu();
 
 private:
-    ImVec2 screenSize;
+    ImVec2* screenSize;
     char inputText[128] = {};
     char inputText2[128] = {};
 

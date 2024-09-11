@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -69,6 +70,25 @@ public class TouchView extends View {
         NativeUtils.MotionEventClick(event.getAction(), event.getRawX(), event.getRawY());
         return false;
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // 打印键盘事件的 Unicode 字符
+        Log.d("J触摸：", String.valueOf(event.getAction()) + "-" + event.getUnicodeChar());
+        Log.d("字符：", String.valueOf(event.getUnicodeChar(event.getMetaState())));
+        // 返回 true 表示事件已处理
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        // 打印键盘事件的 Unicode 字符
+        Log.d("J触摸：", String.valueOf(event.getAction()) + "-" + event.getUnicodeChar());
+        Log.d("字符：", String.valueOf(event.getUnicodeChar(event.getMetaState())));
+        // 返回 true 表示事件已处理
+        return super.onKeyUp(keyCode, event);
+    }
+
 
     /**
      * 启动定期更新任务，用于获取和更新窗口数据。
