@@ -11,28 +11,9 @@ ImGui_Init::ImGui_Init() {
     g_EglContext = EGL_NO_CONTEXT;
 }
 
-void ImGui_Init::test()
-{
-    jclass clazz = env->FindClass("com/sak/imgui_input/FloatingWindow/FloatWinService");
-    if (clazz == nullptr) {
-        return; // 类没找到，直接返回
-    }
-
-    // 查找静态方法ID
-    jmethodID methodID = env->GetStaticMethodID(clazz, "addKeyboardView", "()V");
-    if (methodID == nullptr) {
-        return; // 方法没找到，直接返回
-    }
-
-    // 调用 Java 静态方法
-    env->CallStaticVoidMethod(clazz, methodID);
-    // 释放局部引用
-    env->DeleteLocalRef(clazz);
-}
 
 void ImGui_Init::init(JNIEnv* env, jobject surface) {
     // 获取ANativeWindow并保存相关信息
-    this->env = env;
     this->SurfaceWin = ANativeWindow_fromSurface(env, surface);
 }
 
@@ -187,28 +168,54 @@ void ImGui_Init::MyWindowFunction() {
     */
 }
 
+void KeyboardView(){
+    JNIEnv *g_Env = nullptr;
+    jint result = JniTool::g_VM->AttachCurrentThread(&g_Env, nullptr);
+    if (result != JNI_OK || g_Env == nullptr) {
+        LOGD("Failed to attach thread or obtain JNIEnv, result: %d", result);
+        return;
+    }
+    // Log classpath
+    LOGD("Looking for class in thread...");
+
+    if (JniTool::FloatWinServiceClass == nullptr) {
+        LOGD("Failed to find class");
+    } else {
+        LOGD("Class found: %p", JniTool::FloatWinServiceClass);
+    }
+
+    jmethodID myMethod = g_Env->GetStaticMethodID(JniTool::FloatWinServiceClass, "addKeyboardView", "()V");
+    if (myMethod == nullptr) {
+        LOGD("Failed to find method");
+    } else {
+        LOGD("Method found: %p", myMethod);
+    }
+
+    if (myMethod != nullptr) {
+        g_Env->CallStaticVoidMethod(JniTool::FloatWinServiceClass, myMethod);
+    }
+
+    JniTool::g_VM->DetachCurrentThread();
+}
+
 
 ImGui_Menu* menu = new ImGui_Menu;
-static bool WantTextInputLast = false;
 void ImGui_Init::EglThread() {
     this->InitEGL();
     while (true) {
-        // 检测输入框的鼠标点击事件
+
+        static bool WantTextInputLast = false;
         if (imGuiIo->WantTextInput && !WantTextInputLast) {
-            //this->test();
-            LOGD("TRUE");  // 显示软键盘
+            LOGD("获取焦点");
+            KeyboardView();
+        } else if (!imGuiIo->WantTextInput && WantTextInputLast) {
+            LOGD("失去焦点");
+            KeyboardView();
         }
         WantTextInputLast = imGuiIo->WantTextInput;
-        // 如果鼠标点击了输入框以外的地方，更新 WantTextInputLast
-        if (ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
-            LOGD("FALSE");
-            WantTextInputLast = false;
-        }
 
         ImGuiNewFrame();
-
         menu->MainMenu();
-
         ImGuiRender();
     }
 }
@@ -226,11 +233,8 @@ void ImGui_Init::ImGuiNewFrame() {
 }
 
 void ImGui_Init::ImGuiRender() {
-    // 渲染 Dear ImGui 框架
     ImGui::Render();
-    // 使用 OpenGL 渲染 ImGui 界面
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    //opengl当前buff传递至屏幕
     eglSwapBuffers(g_EglDisplay, g_EglSurface);
 
 }
@@ -241,33 +245,8 @@ void ImGui_Init::Start() {
 
 }
 
-void ImGui_Init::SetUUID(char* UUID){
-    //设备码 = UUID;
-}
-
-void ImGui_Init::SetPassword(char *Password){
-
-   /* if (fopen(_kmPath, "r")){
-        粘贴卡密=dq(_kmPath);
-    }else{
-        粘贴卡密 = Password;
-        // sprintf(kmnr, "卡密:%s",粘贴卡密); 
-    }
-    */
-}
-
-void ImGui_Init::StartImGui(int width,int height)
-{
-    /*if (width > 100 && height > 100){
-        _ScreenY = width;
-        _ScreenX = height;
-        LOGD("传输分辨率width：%d",width);
-        LOGD("传输分辨率height：%d",height);
-        px = height / 2.0;
-        py = width / 2.0;
-        glViewport(0, 0, width, height);
-    }
-     */
+void ImGui_Init::UpDisplaySize(int width,int height){
+    DisplaySize = ImVec2(width,height);
 }
 
 

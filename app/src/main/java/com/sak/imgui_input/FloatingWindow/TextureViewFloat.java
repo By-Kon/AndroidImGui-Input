@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 
-import com.sak.imgui_input.SuService.IPCService;
+import com.sak.imgui_input.NativeUtils;
 
 
 /**
@@ -41,12 +41,10 @@ public class TextureViewFloat extends TextureView implements TextureView.Surface
      */
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        try {
-            IPCService.GetIPC().surfaceCreate(new Surface(surface));
-            IPCService.GetIPC().StartImGui(width, height);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
+
+            NativeUtils.SurfaceCreate(new Surface(surface),width,height);
+            NativeUtils.SurfaceChanged(width, height);
+
     }
 
     /**
@@ -59,6 +57,8 @@ public class TextureViewFloat extends TextureView implements TextureView.Surface
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
         // 可选：处理 SurfaceTexture 大小改变的逻辑
+        NativeUtils.SurfaceChanged(width, height);
+
     }
 
     /**

@@ -10,14 +10,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-
 import com.sak.imgui_input.ImGuiWindowData;
-import com.sak.imgui_input.MainActivity;
-import com.sak.imgui_input.SuService.IPCService;
+import com.sak.imgui_input.NativeUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -71,11 +66,7 @@ public class TouchView extends View {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        try {
-            IPCService.GetIPC().MotionEventClick(event.getAction(), event.getRawX(), event.getRawY());
-        } catch (RemoteException e) {
-            Log.e("TouchView", "Failed to send MotionEvent", e);
-        }
+        NativeUtils.MotionEventClick(event.getAction(), event.getRawX(), event.getRawY());
         return false;
     }
 
@@ -97,13 +88,7 @@ public class TouchView extends View {
      */
     private void updateWindowData() {
         ImGuiWindowData[] windowData;
-        try {
-            windowData = IPCService.GetIPC().GetImGuiWindowData();
-        } catch (RemoteException e) {
-            Log.e("TouchView", "Failed to get window data", e);
-            return;  // 如果数据获取失败，则退出
-        }
-
+        windowData = NativeUtils.GetImGuiWinSize();
         if (windowData != null) {
             updateViews(windowData);
             cleanUpViews(windowData);
@@ -119,8 +104,6 @@ public class TouchView extends View {
         Set<Integer> activeKeys = new HashSet<>();
         for (ImGuiWindowData data : windowData) {
             if (data != null) {
-                Log.d(TAG, String.valueOf(data.WinID));
-                Log.d(TAG, String.valueOf(data.WinName));
                 activeKeys.add(data.WinID);
                 mtouch_Params.x = (int) data.Pos_X;
                 mtouch_Params.y = (int) data.Pos_Y;

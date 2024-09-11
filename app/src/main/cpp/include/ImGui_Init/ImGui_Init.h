@@ -7,6 +7,7 @@
 
 #include "pch.h"
 #include "ImGui_Menu.h"
+#include "JniTool.h"
 class ImGui_Init {
 public:
     // 触摸事件枚举
@@ -39,8 +40,7 @@ public:
 
     ImVector<ImGuiWindow*>  WinList;
 
-    JavaVM* jvm = nullptr;
-    JNIEnv* env = nullptr;
+    ImVec2 DisplaySize;
 
     ImGui_Init();
 
@@ -51,14 +51,12 @@ public:
     void ImGuiNewFrame();
     void ImGuiRender();
 
-    // 菜单相关函数
-
     // Egl操作的线程
     void EglThread();
 
     // 使用JNIEnv和jobject进行初始化
     void init(JNIEnv* env, jobject surface);
-    void test();
+
     // 示例窗口函数
     void MyWindowFunction();
 
@@ -72,7 +70,7 @@ public:
     void SetPassword(char* Password);
 
     void GameInit();
-    void StartImGui(int width,int height);
+    void UpDisplaySize(int width,int height);
 
     ~ImGui_Init();
 };

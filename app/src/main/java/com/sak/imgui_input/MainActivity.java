@@ -2,21 +2,19 @@ package com.sak.imgui_input;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
+import android.app.Activity;
 import android.os.Bundle;
-import android.os.RemoteException;
-import android.widget.Toast;
+import android.util.Log;
+import android.view.KeyEvent;
 
 import com.sak.imgui_input.FloatingWindow.FloatWinService;
-import com.sak.imgui_input.SuService.AIDLConnection;
-import com.sak.imgui_input.SuService.IPCService;
-import com.sak.imgui_input.SuService.SuperMain;
 import com.sak.imgui_input.databinding.ActivityMainBinding;
-import com.topjohnwu.superuser.ipc.RootService;
 
-import java.io.OutputStream;
+public class MainActivity extends Activity {
 
-public class MainActivity extends AppCompatActivity {
+    static {
+        System.loadLibrary("ImGui");
+    }
 
     private static MainActivity instance;
 
@@ -29,36 +27,18 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        if (isRoot())
-        {
-            RootService.bind(new Intent(MainActivity.this, SuperMain.class), new AIDLConnection(false));
+        FloatWinService.showFloat(MainActivity.this);
+        RunFloat();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            // 打印键盘事件的 Unicode 字符
+            Log.d("字符：", String.valueOf(event.getUnicodeChar(event.getMetaState())));
         }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    boolean b = IPCService.isConnect();
-
-                    if (b) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.this,String.valueOf("Su环境初始化完成"),Toast.LENGTH_LONG).show();
-                                FloatWinService.showFloat(MainActivity.this);
-                                RunFloat();
-                            }
-                        });
-                        break;
-                    }
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+        // 返回父类方法的结果，确保事件继续分发
+        return super.dispatchKeyEvent(event);
     }
 
     private void RunFloat()
@@ -73,11 +53,9 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                try {
-                    IPCService.GetIPC().Start();
-                } catch (RemoteException e) {
-                    throw new RuntimeException(e);
-                }
+
+                    NativeUtils.Start();
+
             }
         }).start();
 
@@ -89,21 +67,6 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    public static boolean isRoot() {
-        try {
-            Process process = Runtime.getRuntime().exec("su");
-            OutputStream os = process.getOutputStream();
-            os.write("\n".getBytes());
-            os.flush();
-            os.write("exit".getBytes());
-            os.flush();
-            os.write("\n".getBytes());
-            os.flush();
-            int exitValue = process.waitFor();
-            os.close();
-            return exitValue == 0;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+
+
 }

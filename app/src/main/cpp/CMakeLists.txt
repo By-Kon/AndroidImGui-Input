@@ -12,10 +12,7 @@ include_directories(
         include/ImGui_Init
         include/ImGui_Image
         include/ImGui_Menu
-        include/WeiYanTool
         include/Tool
-        include/ESP
-        include/GameRevise
 )
 
 # 查找源文件并将其分组
@@ -33,7 +30,6 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         ${ImGuiImage}
         ${ImGuiMenu}
         ${Tool}
-        include/WeiYanTool/cJSON.c
         native-lib.cpp
 )
 

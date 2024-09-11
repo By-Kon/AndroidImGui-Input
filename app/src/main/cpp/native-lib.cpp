@@ -3,7 +3,15 @@
 #include "ImGui_Init.h"
 
 // 声明全局变量
+static JavaVM *javaVM = nullptr;
 static ImGui_Init* gEGLInstance = new ImGui_Init;
+JniTool jniTool = nullptr;
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    javaVM = vm;
+    jniTool =  JniTool(vm);
+    return JNI_VERSION_1_6;
+}
 
 // 辅助函数：将jstring转换为C字符串
 char* ConvertJStringToCString(JNIEnv* env, jstring jstr) {
@@ -40,9 +48,21 @@ jobject CreateImGuiWindowData(JNIEnv* env, jclass windowDataClass, int winId, co
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_sak_imgui_1input_NativeUtils_surfaceCreate(JNIEnv* env, jobject /*thiz*/, jobject surface) {
+Java_com_sak_imgui_1input_NativeUtils_SurfaceCreate(JNIEnv* env, jobject /*thiz*/, jobject surface,jint width, jint height ) {
     if (gEGLInstance) {
         gEGLInstance->init(env, surface);
+        gEGLInstance->UpDisplaySize(width, height);
+        jniTool.NativeMethod();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_sak_imgui_1input_NativeUtils_SurfaceChanged(JNIEnv *env, jclass clazz, jint width,
+                                                     jint height) {
+    // TODO: implement SurfaceChanged()
+    if (gEGLInstance) {
+        gEGLInstance->UpDisplaySize(width, height);
     }
 }
 
@@ -75,31 +95,6 @@ Java_com_sak_imgui_1input_NativeUtils_GetImGuiWinSize(JNIEnv* env, jclass /*claz
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_sak_imgui_1input_NativeUtils_SetUUID(JNIEnv* env, jclass /*clazz*/, jstring uuid) {
-    char* uuidCStr = ConvertJStringToCString(env, uuid);
-    if (gEGLInstance) {
-        gEGLInstance->SetUUID(uuidCStr);
-    }
-    free(uuidCStr); // 释放内存
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_sak_imgui_1input_NativeUtils_SetPassword(JNIEnv* env, jclass /*clazz*/, jstring password) {
-    char* passwordCStr = ConvertJStringToCString(env, password);
-    if (gEGLInstance) {
-        gEGLInstance->SetPassword(passwordCStr);
-    }
-    free(passwordCStr); // 释放内存
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_sak_imgui_1input_NativeUtils_StartImGui(JNIEnv* env, jclass /*clazz*/, jint width, jint height) {
-    if (gEGLInstance) {
-        gEGLInstance->StartImGui(width, height);
-    }
-}
-
-extern "C" JNIEXPORT void JNICALL
 Java_com_sak_imgui_1input_NativeUtils_Start(JNIEnv* env, jclass /*clazz*/) {
     if (gEGLInstance) {
         gEGLInstance->Start();
@@ -111,9 +106,16 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_sak_imgui_1input_NativeUtils_UpdateInputText(JNIEnv *env, jclass clazz, jstring text) {
     // TODO: implement UpdateInputText()
-    LOGD("SAK-STRING");
     const char* ctext = ConvertJStringToCString(env,text);
-    if (gEGLInstance) {
+    if (gEGLInstance) {// 添加一个中文字符或者其他Unicode字符
         gEGLInstance->imGuiIo->AddInputCharactersUTF8(ctext);
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_sak_imgui_1input_NativeUtils_DeleteInputText(JNIEnv *env, jclass clazz) {
+    // TODO: implement DeleteInputText()
+    if (gEGLInstance) {
+        gEGLInstance->imGuiIo->AddInputCharacter(0x8);
     }
 }

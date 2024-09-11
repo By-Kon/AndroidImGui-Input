@@ -5,6 +5,7 @@
 #include "pch.h"
 #include <string>
 #include <cstdio>
+#include "JniTool.h"
 class ImGui_Menu {
 public:
     ImGui_Menu();
@@ -14,5 +15,6 @@ public:
 private:
     ImVec2 screenSize;
     char inputText[128] = {};
+    char inputText2[128] = {};
 
 };

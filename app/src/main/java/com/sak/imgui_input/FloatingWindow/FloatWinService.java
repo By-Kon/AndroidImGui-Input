@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +31,7 @@ public class FloatWinService extends Service {
 
     private static DisplayMetrics displayMetrics = new DisplayMetrics();
 
+    public static KeyboardView keyboardView;
     /**
      * 启动悬浮窗服务
      */
@@ -123,7 +126,6 @@ public class FloatWinService extends Service {
      */
     private static void setupContainerView() {
         manager.getDefaultDisplay().getRealMetrics(displayMetrics);
-
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
             containerView = new SurfaceViewFloat(instance);
         } else {
@@ -137,11 +139,15 @@ public class FloatWinService extends Service {
         }
     }
 
-    public static void addKeyboardView()
-    {
-        Log.d(TAG,"addKeyboardView");
-        new KeyboardView(instance);
+    public static void addKeyboardView() {
+        Log.d(TAG, "addKeyboardView");
+        if (keyboardView == null){
+            new Handler(Looper.getMainLooper()).post(() -> keyboardView = new KeyboardView(instance));
+        }else {
+            new Handler(Looper.getMainLooper()).post(() -> keyboardView.removeView());
+        }
     }
+
 
     /**
      * 监听屏幕旋转

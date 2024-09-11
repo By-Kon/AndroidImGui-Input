@@ -10,7 +10,7 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
-import com.sak.imgui_input.SuService.IPCService;
+import com.sak.imgui_input.NativeUtils;
 
 
 /**
@@ -64,11 +64,7 @@ public class SurfaceViewFloat extends SurfaceView implements SurfaceHolder.Callb
      */
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        try {
-            IPCService.GetIPC().surfaceCreate(holder.getSurface());
-        } catch (RemoteException e) {
-            Log.e("连接输出", Log.getStackTraceString(e));
-        }
+        NativeUtils.SurfaceCreate(holder.getSurface(),this.getWidth(),this.getHeight());
     }
 
     /**
@@ -81,11 +77,7 @@ public class SurfaceViewFloat extends SurfaceView implements SurfaceHolder.Callb
      */
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int Width, int Height) {
-        try {
-            IPCService.GetIPC().StartImGui(Width, Height);
-        } catch (RemoteException e) {
-            Log.e("连接输出", Log.getStackTraceString(e));
-        }
+        NativeUtils.SurfaceChanged(Width, Height);
     }
 
     /**

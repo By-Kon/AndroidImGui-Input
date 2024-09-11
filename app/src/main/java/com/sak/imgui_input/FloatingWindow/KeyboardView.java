@@ -18,6 +18,7 @@ public class KeyboardView {
 
     private static final String TAG = "KeyboardView";
     private static final WindowManager.LayoutParams keyboardViewParams = new WindowManager.LayoutParams();
+
     private final EditText editText;
     private final WindowManager windowManager;
     private String previousText = "";
@@ -26,9 +27,8 @@ public class KeyboardView {
         editText = new EditText(context);
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         setupWindowParams();
-
         windowManager.addView(editText, keyboardViewParams);
-        toggleKeyboard(editText, true);
+        toggleKeyboard(true);
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -70,11 +70,10 @@ public class KeyboardView {
 
         if (!addedCharacters.isEmpty()) {
             NativeUtils.UpdateInputText(addedCharacters);
-            log("新增字符串: " + addedCharacters);
         }
 
         if (!removedCharacters.isEmpty()) {
-            log("删除字符串: " + removedCharacters);
+            NativeUtils.DeleteInputText();
         }
 
         previousText = currentText;
@@ -116,11 +115,9 @@ public class KeyboardView {
         Log.d(TAG, message);
     }
 
-    // 强制显示或关闭系统键盘
-    public static void toggleKeyboard(final EditText editText, final boolean open) {
+    public void toggleKeyboard(final boolean open) {
         new Handler().postDelayed(() -> {
-            InputMethodManager imm = (InputMethodManager)
-                    editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) editText.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             if (open) {
                 imm.showSoftInput(editText, InputMethodManager.SHOW_FORCED);
             } else {
@@ -129,12 +126,11 @@ public class KeyboardView {
         }, 300);
     }
 
-    // 删除视图并清理资源
     public void removeView() {
         if (editText.getParent() != null) {
-            toggleKeyboard(editText, false); // 关闭软键盘
-            windowManager.removeView(editText); // 从窗口管理器中移除 EditText
-            log("Keyboard view removed.");
+            toggleKeyboard(false);
+            windowManager.removeView(editText);
+            FloatWinService.keyboardView = null;
         }
     }
 }
