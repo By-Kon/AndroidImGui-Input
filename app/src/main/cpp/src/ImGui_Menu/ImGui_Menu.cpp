@@ -1,30 +1,33 @@
-//
-// Created by Administrator on 2024/8/25.
-//
 
 #include "ImGui_Menu.h"
-
-
-JniTool* jnitool = new JniTool();
+static  ImGuiWindowFlags windowflags =  ImGuiWindowFlags_NoTitleBar |
+ImGuiWindowFlags_NoResize |
+ImGuiWindowFlags_NoScrollWithMouse |
+ImGuiWindowFlags_NoCollapse;
+static float beginHeight  = 0.0f;
+std::string hint = {};
 void ImGui_Menu::MainMenu() {
     float framerate = ImGui::GetIO().Framerate;
-    //ImGui::SetNextWindowSize(ImVec2(500.0f,500.0f));
-    static float Login_h  = 0.0f;
-    if(Login_h < 500.0f){
-        Login_h += 8.0f;
+    if(beginHeight < 400.0f){
+        beginHeight += 8.0f;
     }
-    ImGui::SetNextWindowSize(ImVec2(900.0f,Login_h));
-    ImVec2 beginSize = {900,Login_h};
-    //ImGui::SetNextWindowPos(ImVec2((screenSize->x - beginSize.x) / 2, (screenSize->y - beginSize.y) / 2));
-    ImGui::Begin("Sak_Text_Input", nullptr,3);
+    ImGui::SetNextWindowSize(ImVec2(500.0f,beginHeight));
+    ImGui::Begin("Sak_Text_Input", nullptr,windowflags);
     ImGui::Text("FPS: %.1f", framerate);
-    ImGui::InputText("Text Input", this->inputText, IM_ARRAYSIZE(this->inputText));
-    ImGui::InputText("Text Input2", this->inputText2, IM_ARRAYSIZE(this->inputText2));
-    ImGui::Button("test");
+    ImGui::InputTextWithHint("账号","请输入账号", this->account, IM_ARRAYSIZE(this->account));
+    ImGui::InputTextWithHint("密码", "请输入密码",this->password, IM_ARRAYSIZE(this->password));
+    if(ImGui::Button("登录")){
+        if (strcmp(account, "") == 0 || strcmp(password, "") == 0) {
+            hint = "账户名和密码不能为空!";
+        } else if (strcmp(account, "Sak") == 0 && strcmp(password, "QQ:1276787482") == 0){
+            hint = "登录成功!";
+        }else{
+            hint = "账号密码错误!";
+        }
+    }
+    ImGui::Text(hint.c_str());
     ImGui::End();
-
 }
-ImGui_Menu::ImGui_Menu(ImVec2* screenSize2) {
-
-    screenSize = screenSize2;//imGui.DisplaySize;
+ImGui_Menu::ImGui_Menu(ImVec2* displaySize) {
+    DisplaySize = displaySize;
 }

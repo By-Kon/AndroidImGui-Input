@@ -5,24 +5,19 @@ import static android.content.Context.WINDOW_SERVICE;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
-import android.os.RemoteException;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import com.sak.imgui_input.ImGuiWindowData;
+
 import com.sak.imgui_input.NativeUtils;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * TouchView 是一个自定义的 View，用于处理触摸事件并定期更新浮动窗口的视图布局。
- * 该类管理视图的添加、更新、移除，并通过 IPC 与后台服务进行通信。
- */
 public class TouchView extends View {
     private static final String TAG = "Sak-TouchView";
     private static final int UPDATE_INTERVAL_MS = 800;
@@ -30,9 +25,11 @@ public class TouchView extends View {
     private static WindowManager manager;
     private static View mtouch_View;
     public static WindowManager.LayoutParams mtouch_Params;
+
     private final Handler handler;
     private static Context con;
-    private ImGuiWindowData[] lastWindowData; // 用于缓存上一次的窗口数据
+    private ImGuiWindowData[] lastWindowData; // 缓存上一次的窗口数据
+    public static Map<Integer, View> ViewList = new HashMap<>();
 
     public TouchView(Context context) {
         super(context);
@@ -52,11 +49,9 @@ public class TouchView extends View {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // 如果事件没有被处理，直接返回 false
         if (event == null) return false;
-        Log.d("触摸事件：", "" + event.getAction());
         NativeUtils.MotionEventClick(event.getAction(), event.getRawX(), event.getRawY());
-        return false;
+        return true; // 返回 true 表示事件已被处理
     }
 
     private void startPeriodicUpdates() {
@@ -71,10 +66,10 @@ public class TouchView extends View {
 
     private void updateWindowData() {
         ImGuiWindowData[] windowData = NativeUtils.GetImGuiWinSize();
-        if (windowData != null && !isSameWindowData(windowData)) { // 只有数据不同时才更新
+        if (windowData != null && !isSameWindowData(windowData)) {
             updateViews(windowData);
             cleanUpViews(windowData);
-            lastWindowData = windowData; // 保存当前数据以备下次比较
+            lastWindowData = windowData;
         }
     }
 
@@ -83,11 +78,9 @@ public class TouchView extends View {
             return false;
         }
         for (int i = 0; i < windowData.length; i++) {
-            // 先检查是否为空
             if (windowData[i] == null || lastWindowData[i] == null) {
                 return false;
             }
-            // 比较具体字段
             if (windowData[i].WinID != lastWindowData[i].WinID ||
                     windowData[i].Pos_X != lastWindowData[i].Pos_X ||
                     windowData[i].Pos_Y != lastWindowData[i].Pos_Y ||
@@ -99,7 +92,6 @@ public class TouchView extends View {
         return true;
     }
 
-
     private void updateViews(ImGuiWindowData[] windowData) {
         for (ImGuiWindowData data : windowData) {
             if (data != null) {
@@ -108,7 +100,7 @@ public class TouchView extends View {
                 mtouch_Params.width = (int) data.Size_X;
                 mtouch_Params.height = (int) data.Size_Y;
 
-                if (EventClass.ViewList.containsKey(data.WinID)) {
+                if (ViewList.containsKey(data.WinID)) {
                     if (!data.Action) {
                         mtouch_Params.width = 0;
                         mtouch_Params.height = 0;
@@ -123,14 +115,14 @@ public class TouchView extends View {
 
     private void addNewView(ImGuiWindowData data) {
         TouchView newTouchView = new TouchView(con);
-        EventClass.ViewList.put(data.WinID, newTouchView);
+        ViewList.put(data.WinID, newTouchView);
         if (FloatWinService.manager != null) {
             FloatWinService.manager.addView(newTouchView, mtouch_Params);
         }
     }
 
     private void updateOrRemoveView(int winID) {
-        View view = EventClass.ViewList.get(winID);
+        View view = ViewList.get(winID);
         if (view != null && FloatWinService.manager != null) {
             FloatWinService.manager.updateViewLayout(view, mtouch_Params);
         }
@@ -144,7 +136,7 @@ public class TouchView extends View {
             }
         }
 
-        Iterator<Map.Entry<Integer, View>> iterator = EventClass.ViewList.entrySet().iterator();
+        Iterator<Map.Entry<Integer, View>> iterator = ViewList.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, View> entry = iterator.next();
             if (!activeKeys.contains(entry.getKey())) {
@@ -158,7 +150,6 @@ public class TouchView extends View {
         if (FloatWinService.manager != null) {
             FloatWinService.manager.removeView(view);
         }
-        Log.e("TouchView", "Removed view");
     }
 
     public void destroy() {
@@ -169,11 +160,10 @@ public class TouchView extends View {
             try {
                 manager.removeView(mtouch_View);
             } catch (Exception e) {
-                Log.e("TouchView", "Failed to remove view", e);
+                Log.e(TAG, "无法删除视图: ", e);
             }
         }
         mtouch_View = null;
         manager = null;
     }
 }
-

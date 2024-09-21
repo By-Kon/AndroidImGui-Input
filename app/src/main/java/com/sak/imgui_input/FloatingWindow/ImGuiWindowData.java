@@ -1,4 +1,4 @@
-package com.sak.imgui_input;
+package com.sak.imgui_input.FloatingWindow;
 
 import android.os.Parcel;
 import android.os.Parcelable;

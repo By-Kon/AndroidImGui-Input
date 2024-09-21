@@ -10,9 +10,6 @@ import android.view.WindowManager;
 
 public class WindowLayoutParas {
 
-    public WindowLayoutParas() {
-    }
-
     /**
      * 获取悬浮窗的属性参数
      *

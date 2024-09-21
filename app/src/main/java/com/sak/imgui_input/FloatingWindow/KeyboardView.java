@@ -16,15 +16,14 @@ import android.widget.EditText;
 import com.sak.imgui_input.NativeUtils;
 public class KeyboardView {
 
-    private static final String TAG = "KeyboardView";
+    private static final String TAG = "Sak-KeyboardView";
     private static final WindowManager.LayoutParams keyboardViewParams = new WindowManager.LayoutParams();
-
     private final EditText editText;
     private final WindowManager windowManager;
     private String previousText = "";
 
     public KeyboardView(Context context) {
-        editText = new EditText(context) {
+        editText = new androidx.appcompat.widget.AppCompatEditText(context) {
             @Override
             public boolean dispatchKeyEvent(KeyEvent event) {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -36,7 +35,6 @@ public class KeyboardView {
                     if (keyPressed.equals("KEYCODE_ENTER")) {
                         NativeUtils.UpdateInputText("\n");
                     }
-
                 }
                 return super.dispatchKeyEvent(event);
             }
@@ -103,8 +101,6 @@ public class KeyboardView {
 
         return addedCharacters.toString();
     }
-
-
 
     public void toggleKeyboard(final boolean open) {
         new Handler().postDelayed(() -> {

@@ -14,6 +14,8 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.sak.imgui_input.NativeUtils;
+
 import java.util.Iterator;
 import java.util.Map;
 
@@ -104,7 +106,7 @@ public class FloatWinService extends Service {
             }
         }
 
-        Iterator<Map.Entry<Integer, View>> iterator = EventClass.ViewList.entrySet().iterator();
+        Iterator<Map.Entry<Integer, View>> iterator = TouchView.ViewList.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, View> entry = iterator.next();
             View view = entry.getValue();
@@ -120,7 +122,7 @@ public class FloatWinService extends Service {
             }
             iterator.remove();
         }
-        EventClass.ViewList.clear(); // 清空 view 表
+        TouchView.ViewList.clear(); // 清空 view 表
     }
 
     /**
@@ -149,21 +151,9 @@ public class FloatWinService extends Service {
         }
     }
 
-
-    /**
-     * 监听屏幕旋转
-     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-
-        if (containerViewParams != null && containerView != null) {
-            manager.getDefaultDisplay().getRealMetrics(displayMetrics);
-            containerViewParams.width = displayMetrics.widthPixels;
-            containerViewParams.height = displayMetrics.heightPixels;
-            manager.updateViewLayout(containerView, containerViewParams);
-        }
-
-        Log.d(TAG, "屏幕旋转: width=" + displayMetrics.widthPixels + ", height=" + displayMetrics.heightPixels);
+        NativeUtils.SurfaceChanged(displayMetrics.widthPixels,displayMetrics.heightPixels);
     }
 }

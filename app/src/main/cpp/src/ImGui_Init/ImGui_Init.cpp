@@ -153,37 +153,6 @@ int ImGui_Init::InitEGL() {
     imGuiStyle->ScaleAllSizes(3.0f);
     ImGui::StyleColorsLight();
 
-    imGuiStyle->WindowRounding = 20.0f;
-    imGuiStyle->FrameRounding =20.0f;
-
-    imGuiStyle->GrabRounding = 10.0f;   // 滚动条圆角
-    imGuiStyle->LogSliderDeadzone=10.0f;
-    imGuiStyle->WindowTitleAlign = ImVec2(0.5, 0.5);
-
-    imGuiStyle->Colors[ImGuiCol_TitleBg] = ImColor(ImVec4(1.0f, 1.0f, 1.0f,0.75f));
-    imGuiStyle->Colors[ImGuiCol_TitleBgActive] = ImColor(ImVec4(1.0f, 1.0f, 1.0f,0.75f));
-    imGuiStyle->Colors[ImGuiCol_TitleBgCollapsed] = ImColor(ImVec4(1,1,1,0.5));
-
-    imGuiStyle->Colors[ImGuiCol_WindowBg] = ImColor(ImVec4(1.0f, 1.0f, 1.0f,0.75f));
-
-    imGuiStyle->Colors[ImGuiCol_Text] = ImColor(0,0,0,255);
-
-    imGuiStyle->Colors[ImGuiCol_Button] = ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    imGuiStyle->Colors[ImGuiCol_ButtonActive] = ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    imGuiStyle->Colors[ImGuiCol_ButtonHovered] = ImColor(ImVec4(0.0f, 0.75f, 1.0f, 1.0f));
-
-    imGuiStyle->Colors[ImGuiCol_FrameBg] = ImColor(255,255,255,255);
-    imGuiStyle->Colors[ImGuiCol_FrameBgActive] = ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    imGuiStyle->Colors[ImGuiCol_FrameBgHovered] = ImColor(ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-    imGuiStyle->Colors[ImGuiCol_Header] = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);         // 未展开的节点背景色
-    imGuiStyle->Colors[ImGuiCol_HeaderHovered] = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);  // 悬停时的背景色
-    imGuiStyle->Colors[ImGuiCol_HeaderActive] = ImVec4(0.0f, 0.75f, 1.0f, 1.0f);   // 展开时的背景色
-
-    imGuiStyle->Colors[ImGuiCol_CheckMark] = ImVec4(0.0f, 0.5f, 1.0f, 1.0f);
-    imGuiStyle->FrameBorderSize = 3.0f; // 边框厚度
-    imGuiStyle->FramePadding = ImVec2(10.0f, 10.0f);  // 水平和垂直填充
-
     g_Initialized = true;
 
     return 1;
@@ -228,9 +197,8 @@ void ImGui_Init::InputTouchEvent(int event_get_action, float x, float y) {
 void ImGui_Init::MyWindowFunction() {
     // 获取当前 ImGui 上下文
     if (g_Context == nullptr) {
-        return; // 上下文为空，直接返回
+        return;
     }
-    // 获取窗口列表
     WinList = g_Context->Windows;
 }
 
@@ -275,10 +243,8 @@ void ImGui_Init::EglThread() {
     while (true) {
         static bool WantTextInputLast = false;
         if (imGuiIo->WantTextInput && !WantTextInputLast) {
-            LOGD("获取焦点");
             KeyboardView();
         } else if (!imGuiIo->WantTextInput && WantTextInputLast) {
-            LOGD("失去焦点");
             KeyboardView();
         }
         WantTextInputLast = imGuiIo->WantTextInput;

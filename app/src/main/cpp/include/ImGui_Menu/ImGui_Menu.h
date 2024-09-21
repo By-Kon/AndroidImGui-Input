@@ -13,8 +13,8 @@ public:
     void MainMenu();
 
 private:
-    ImVec2* screenSize;
-    char inputText[128] = {};
-    char inputText2[128] = {};
+    ImVec2* DisplaySize;
+    char account[128] = {};
+    char password[128] = {};
 
 };
